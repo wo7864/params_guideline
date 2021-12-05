@@ -54,17 +54,25 @@ class _jsonParserAction(argparse.Action,argparse._ActionsContainer):
         self.file_path = values
         sub_namespace = argparse.Namespace()
         with open(self.file_path, 'r') as f:
-            parse_json = json.load(f)
+            try:
+                parse_json = json.load(f)
+            except:
+                raise Exception(f"{self.file_path} is invaild JSON File")
 
         for sub_action in self._actions:
             try:
                 sub_action_value = parse_json[sub_action.dest]
             except:
                 if not sub_action.option_strings: 
-                    raise KeyError(f"{sub_action.dest} is not included in {self.file_path} JSON File.")
+                    err_msg = f"{sub_action.dest} is not included in {self.file_path} JSON File."
+                    raise KeyError(err_msg)
             else:
                 sub_action(self, sub_namespace, sub_action_value)
 
+        for key in parse_json:
+            if not key in sub_namespace:
+                print(key)
+        print(sub_namespace)
         setattr(namespace, self.dest, sub_namespace)
 
 
@@ -116,14 +124,15 @@ class _yamlParserAction(argparse.Action,argparse._ActionsContainer):
         self.file_path = values
         sub_namespace = argparse.Namespace()
         with open(self.file_path, 'r') as f:
-            parse_json = yaml.load(f, Loader=yaml.FullLoader)
+            parse_yaml = yaml.load(f, Loader=yaml.FullLoader)
 
         for sub_action in self._actions:
             try:
-                sub_action_value = parse_json[sub_action.dest]
+                sub_action_value = parse_yaml[sub_action.dest]
             except:
                 if not sub_action.option_strings: 
-                    raise KeyError(f"{sub_action.dest} is not included in {self.file_path} YAML File.")
+                    err_msg = f"{sub_action.dest} is not included in {self.file_path} YAML File."
+                    raise KeyError(err_msg)
             else:
                 sub_action(self, sub_namespace, sub_action_value)
 
@@ -135,7 +144,7 @@ class CustomHelpFormatter(argparse.HelpFormatter):
     def add_argument(self, action):
         super(CustomHelpFormatter, self).add_argument(action)
 
-        if type(action) is _jsonParserAction:
+        if type(action) in [_jsonParserAction, _yamlParserAction] :
             self.start_section(f'*{action.dest} detail')
             for sub_action in action._actions:
                 self.add_argument(sub_action)

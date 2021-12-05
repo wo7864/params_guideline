@@ -1,3 +1,2 @@
-config:
-  isyaml: test
-  hello: world
+isyaml: test
+hello: world
