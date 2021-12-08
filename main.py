@@ -1,14 +1,16 @@
-from params_guideline import Parser
+from src.core import pg
 
-parser = Parser(description='Process some integers.')
-json_parser = parser.add_json_parser('--configs', default='configs.json', help='config json file')
-json_parser.add_argument('test', type=int, help="test")
-json_parser.add_argument('--test2', type=str, help="test")
+@pg.parsing()
+@pg.arg("--test")
+@pg.arg("--test2", default='test', type=str)
 
-json_parser = parser.add_yaml_parser('--yaml_config', default='configs.yaml', help='config yaml file')
-json_parser.add_argument('isyaml', type=str, help="test")
-json_parser.add_argument('--hello', type=str, help="test")
+@pg.json.parsing("--json")
+@pg.arg("--json_test")
 
-args = parser.parse_args()
-print('fin:', args)
-print('fin:', args.configs.test)
+@pg.torch.parsing("--opts")
+@pg.arg("--dict")
+def main(args):
+    print(args.opts.dict)
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,5 @@
 {
-    "test":"test",
+    "json_test":"test_json",
     "test2":123,
     "no":"no include"
 }
