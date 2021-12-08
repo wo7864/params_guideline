@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import inspect
 
 class RootParam:
     def __init__(self):
@@ -37,6 +38,11 @@ class Param:
         if 'type' in self.kwargs:
             if not isinstance(self.value, self.kwargs['type']):
                 raise TypeError(f"The value of attribute {self.key} must be of type {self.kwargs['type']}.")
+
+        if 'condition' in self.kwargs:
+            #print(str(inspect.getsourcelines(self.kwargs['condition'])[0][0]))
+            if not self.kwargs['condition'](self.value):
+                raise ValueError(f"The value of attribute {self.key} does not satisfy the condition.")
 
     def update_value(self, data=None):
         for a in data:
