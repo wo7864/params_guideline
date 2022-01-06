@@ -1,4 +1,4 @@
-from src.core import pg
+from pg.core import pg
 
 @pg.parsing()
 @pg.arg("--test", condition=lambda x: len(x) < 5)
