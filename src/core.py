@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import inspect
 
 class RootParam:
     def __init__(self):
@@ -27,9 +26,7 @@ class Param:
         self.key = key[2:]
         self.kwargs = kwargs
         self.value = None
-
-    def __str__(self):
-        return self.value
+        self.is_parent = False
 
     def __repr__(self):
         return self.value
@@ -37,7 +34,13 @@ class Param:
     def check_value(self):
         if 'type' in self.kwargs:
             if not isinstance(self.value, self.kwargs['type']):
-                raise TypeError(f"The value of attribute {self.key} must be of type {self.kwargs['type']}.")
+                try:
+                    if self.kwargs['type'] == list:
+                        self.value = self.value.split(',')
+                    else: 
+                        self.value = self.kwargs['type'](self.value)
+                except:
+                    raise TypeError(f"The value of attribute {self.key} must be of type {self.kwargs['type']}.")
 
         if 'condition' in self.kwargs:
             #print(str(inspect.getsourcelines(self.kwargs['condition'])[0][0]))
@@ -60,6 +63,11 @@ class Param:
 
 
 class JsonParam(Param):
+    def __init__(self, key, kwargs):
+        super().__init__(key, kwargs)
+        self.is_parent = True
+
+
     def update_value(self, data=None):
         file_path = super().update_value(data=data)
         if not os.path.exists(file_path):
@@ -69,6 +77,10 @@ class JsonParam(Param):
             self.data = json.load(f)
 
 class TorchParam(Param):
+    def __init__(self, key, kwargs):
+        super().__init__(key, kwargs)
+        self.is_parent = True
+
     def update_value(self, data=None):
         file_path = super().update_value(data=data)
         if not os.path.exists(file_path):
@@ -90,7 +102,11 @@ class Manager:
 
     def update(self):
         for p in self.stack:
-            setattr(p.kwargs['parent'], p.key, p)
+            if p.is_parent:
+                setattr(p.kwargs['parent'], p.key, p)
+            else:
+                setattr(p.kwargs['parent'], p.key, p.value)
+
         
         root = self.stack[0]
         while hasattr(root, 'kwargs'):
@@ -126,9 +142,9 @@ class pg:
         def _decorator(args):
             if len(args[1]):
                 params = args[1].update()
-                return lambda: args[0](params)
+                return lambda: args[0](params) # main(args)
             else:
-                return lambda: args[0]()
+                return lambda: args[0]()       # main
 
         return _decorator
 
