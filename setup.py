@@ -1,8 +1,8 @@
 import setuptools
 
 setuptools.setup(
-    name="params-guidline",
-    version="0.0.2",
+    name="params-guideline",
+    version="0.0.3",
     license='MIT',
     author="wo7864",
     author_email="wo78644@gmail.com",

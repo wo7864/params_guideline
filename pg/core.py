@@ -37,6 +37,13 @@ class Param:
                 try:
                     if self.kwargs['type'] == list:
                         self.value = self.value.split(',')
+                    elif self.kwargs['type'] == bool:
+                        if self.value in ['0', 'False', 'false', '']:
+                            self.value = False
+                        elif self.value in ['1', 'True', 'true']:
+                            self.value = True
+                        else:
+                            raise
                     else: 
                         self.value = self.kwargs['type'](self.value)
                 except:
@@ -135,10 +142,11 @@ def static_vars(**kwargs):
         return func
     return _decorater
 
-root=RootParam()
-@static_vars(parent=root)
 class pg:
+
     def parsing():
+        pg.root = RootParam()
+        pg.parent = pg.root
         def _decorator(args):
             if len(args[1]):
                 params = args[1].update()
@@ -156,16 +164,16 @@ class pg:
 
     class json:
         def parsing(name, **kwargs):
-            kwargs['parent'] = root
+            kwargs['parent'] = pg.root
             param = JsonParam(name, kwargs)
-            param.update_value(data=root.data)
+            param.update_value(data=pg.root.data)
             setattr(pg, 'parent', param)
             return decorator(param)
 
     class torch:
         def parsing(name, **kwargs):
-            kwargs['parent'] = root
+            kwargs['parent'] = pg.root
             param = TorchParam(name, kwargs)
-            param.update_value(data=root.data)
+            param.update_value(data=pg.root.data)
             setattr(pg, 'parent', param)
             return decorator(param)
